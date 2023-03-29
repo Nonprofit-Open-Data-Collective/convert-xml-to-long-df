@@ -6,7 +6,8 @@ create_attributes_df <- function( doc=NULL, url=NULL )
 
   if( is.null(doc) )
   {
-    doc <- xml2::read_xml( file(url) )
+    try( doc <- xml2::read_xml( file(url) ) )
+    if( is.null(doc) ){ return(NULL) }
     xml2::xml_ns_strip( doc )
   }
 
@@ -28,6 +29,7 @@ create_attributes_df <- function( doc=NULL, url=NULL )
 
 }
 
+# d <- create_attributes_df( doc )
 # d %>% head %>% kable
 #
 # |xpath                     |attribute             |values                                    |
@@ -39,4 +41,38 @@ create_attributes_df <- function( doc=NULL, url=NULL )
 # |/Return/ReturnData        |documentCount         |10                                        |
 # |/Return/ReturnData/IRS990 |documentId            |RetDoc1038000001                          |
 
+
+
+
+xml_to_long <- function( doc=NULL, url=NULL )
+{
+
+  if( is.null(doc) )
+  {
+    try( doc <- xml2::read_xml( file(url) ) )
+    if( is.null(doc) ){ return(NULL) }
+    xml2::xml_ns_strip( doc )
+  }
+
+  x <- doc %>% as_list()
+  ux <- unlist(x)
+  nm <- names(ux)
+  xpath <- paste0( "/", gsub( "\\.", "/", nm ) )
+  d <- data.frame( xpath=xpath, value=ux ) 
+  return(d)
+}
+
+
+
+# d <- xml_to_long( doc )
+# d %>% head %>% kable
+#
+# |xpath                                                                        |value                     |
+# |:----------------------------------------------------------------------------|:-------------------------|
+# |/Return/ReturnHeader/Timestamp                                               |2013-03-28T16:29:39-05:00 |
+# |/Return/ReturnHeader/TaxPeriodEndDate                                        |2012-06-30                |
+# |/Return/ReturnHeader/PreparerFirm/EIN                                        |223177927                 |
+# |/Return/ReturnHeader/PreparerFirm/PreparerFirmBusinessName/BusinessNameLine1 |SAX MACY FROMM & CO PC    |
+# |/Return/ReturnHeader/PreparerFirm/PreparerFirmUSAddress/AddressLine1         |855 VALLEY ROAD           |
+# |/Return/ReturnHeader/PreparerFirm/PreparerFirmUSAddress/City                 |CLIFTON                   |
 
